@@ -30,7 +30,7 @@ func main() {
 	}
 	defer conn.Close()
 
-	conn.Read()
+	// conn.Read()
 	buf := make([]byte, 4)
 	bufWithWriter := bytes.NewBuffer(buf)
 
