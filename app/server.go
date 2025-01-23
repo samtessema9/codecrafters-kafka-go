@@ -32,17 +32,18 @@ func main() {
 
 	// conn.Read()
 	// var buf []byte
-	bufWithWriter := new(bytes.Buffer)
+	// bufWithWriter := new(bytes.Buffer)
 
-	messageSize := uint32(0)
-	correlationId := uint32(7)
+	// messageSize := uint32(0)
+	// correlationId := uint32(7)
 	
-	// write the message_size and correlation_id to the buffer in BigEndian binary format
-	binary.Write(bufWithWriter, binary.BigEndian, messageSize)
-	binary.Write(bufWithWriter, binary.BigEndian, correlationId)
+	// // write the message_size and correlation_id to the buffer in BigEndian binary format
+	// binary.Write(bufWithWriter, binary.BigEndian, messageSize)
+	// binary.Write(bufWithWriter, binary.BigEndian, correlationId)
 
-	fmt.Printf("buf: % X", bufWithWriter.Bytes())
+	// fmt.Printf("buf: % X", bufWithWriter.Bytes())
 
-	// respond to the client with the value stored in our buffer
-	conn.Write(bufWithWriter.Bytes())
+	// // respond to the client with the value stored in our buffer
+	// conn.Write(bufWithWriter.Bytes())
+	conn.Write([]byte{0, 0, 0, 0, 0, 0, 0, 7})
 }
