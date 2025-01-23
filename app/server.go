@@ -28,7 +28,7 @@ func main() {
 		fmt.Println("Error accepting connection: ", err.Error())
 		os.Exit(1)
 	}
-	// defer conn.Close()
+	defer conn.Close()
 
 	// conn.Read()
 	// var buf []byte
@@ -45,5 +45,7 @@ func main() {
 
 	// // respond to the client with the value stored in our buffer
 	// conn.Write(bufWithWriter.Bytes())
+	buff := make([]byte, 1024)
+	conn.Read(buff)
 	conn.Write([]byte{0, 0, 0, 0, 0, 0, 0, 7})
 }
