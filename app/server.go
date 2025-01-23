@@ -34,7 +34,7 @@ func main() {
 	buf := make([]byte, 8)
 	bufWithWriter := bytes.NewBuffer(buf)
 
-	messageSize := uint32(0)
+	messageSize := uint32(4)
 	correlationId := uint32(7)
 	
 	// write the message_size and correlation_id to the buffer in BigEndian binary format
