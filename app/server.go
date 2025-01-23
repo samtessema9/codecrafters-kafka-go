@@ -17,16 +17,6 @@ func main() {
 	defer l.Close()
 	fmt.Println("Server is listening on port 9092...")
 
-	// for {
-	// 	conn, err := l.Accept()
-	// 	if err != nil {
-	// 		fmt.Println("Error accepting connection: ", err.Error())
-	// 		os.Exit(1)
-	// 	}
-		
-	// 	go handleConn(conn)
-	// }
-
 	conn, err := l.Accept()
 	if err != nil {
 		fmt.Println("Error accepting connection: ", err.Error())
@@ -49,10 +39,13 @@ func handleConn(conn net.Conn) {
 	messageSize := uint32(0)
 	parsedRequest := parseRequest(readBuf)
 	correlationId := parsedRequest.headers.correlationId
+	apiVersion := parsedRequest.headers.requestApiVersion
+	errorCode := checkVersion(apiVersion)
 	
 	// write the message_size and correlation_id to the buffer in BigEndian binary format
 	binary.Write(writeBuf, binary.BigEndian, messageSize)
 	binary.Write(writeBuf, binary.BigEndian, correlationId)
+	binary.Write(writeBuf, binary.BigEndian, errorCode)
 
 	// respond to the client with the value stored in our buffer
 	conn.Write(writeBuf.Bytes())
