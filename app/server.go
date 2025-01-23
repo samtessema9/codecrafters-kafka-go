@@ -30,9 +30,10 @@ func main() {
 	}
 	defer conn.Close()
 
-	buf := make([]byte, 8)
+	conn.Read()
+	buf := make([]byte, 4)
 	bufWithWriter := bytes.NewBuffer(buf)
-	
+
 	correlationId := uint32(7)
 	
 	// write the correlation_id to the buffer in BigEndian binary format
