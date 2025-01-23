@@ -47,10 +47,7 @@ func handleConn(conn net.Conn) {
 	writeBuf := new(bytes.Buffer)
 
 	messageSize := uint32(0)
-	parsedRequest, err := parseRequest(readBuf)
-	if err != nil {
-		return
-	}
+	parsedRequest := parseRequest(readBuf)
 	correlationId := parsedRequest.headers.correlationId
 	
 	// write the message_size and correlation_id to the buffer in BigEndian binary format
