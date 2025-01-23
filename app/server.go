@@ -30,20 +30,21 @@ func main() {
 	}
 	defer conn.Close()
 
-	buff := make([]byte, 1024)
-	conn.Read(buff)
-	
-	bufWithWriter := new(bytes.Buffer)
+	// read and ignore clients message
+	readBuf := []byte{}
+	_, _ = conn.Read(readBuf)
+
+	// create the write buffer and allocate 8 bytes to it
+	buf := [8]byte{}
+	writeBuf := bytes.NewBuffer(buf[:])
 
 	messageSize := uint32(0)
 	correlationId := uint32(7)
 	
 	// write the message_size and correlation_id to the buffer in BigEndian binary format
-	binary.Write(bufWithWriter, binary.BigEndian, messageSize)
-	binary.Write(bufWithWriter, binary.BigEndian, correlationId)
-
-	fmt.Printf("buf: % X", bufWithWriter.Bytes())
+	binary.Write(writeBuf, binary.BigEndian, messageSize)
+	binary.Write(writeBuf, binary.BigEndian, correlationId)
 
 	// respond to the client with the value stored in our buffer
-	conn.Write(bufWithWriter.Bytes())
+	conn.Write(writeBuf.Bytes())
 }
