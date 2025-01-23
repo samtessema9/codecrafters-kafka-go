@@ -44,7 +44,7 @@ func main() {
 	binary.Write(writeBuf, binary.BigEndian, messageSize)
 	binary.Write(writeBuf, binary.BigEndian, correlationId)
 
-	fmt.Printf("buf: % X", writeBuf.Bytes())
+	fmt.Println(writeBuf.Bytes())
 
 	// respond to the client with the value stored in our buffer
 	conn.Write(writeBuf.Bytes())
