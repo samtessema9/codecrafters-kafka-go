@@ -31,8 +31,8 @@ func main() {
 	defer conn.Close()
 
 	// conn.Read()
-	var buf []byte
-	bufWithWriter := bytes.NewBuffer(buf)
+	// var buf []byte
+	bufWithWriter := new(bytes.Buffer)
 
 	messageSize := uint32(0)
 	correlationId := uint32(7)
