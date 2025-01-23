@@ -1,8 +1,8 @@
 package main
 
 import (
-	// "bytes"
-	// "encoding/binary"
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"net"
 	"os"
@@ -30,22 +30,20 @@ func main() {
 	}
 	defer conn.Close()
 
-	// conn.Read()
-	// var buf []byte
-	// bufWithWriter := new(bytes.Buffer)
-
-	// messageSize := uint32(0)
-	// correlationId := uint32(7)
-	
-	// // write the message_size and correlation_id to the buffer in BigEndian binary format
-	// binary.Write(bufWithWriter, binary.BigEndian, messageSize)
-	// binary.Write(bufWithWriter, binary.BigEndian, correlationId)
-
-	// fmt.Printf("buf: % X", bufWithWriter.Bytes())
-
-	// // respond to the client with the value stored in our buffer
-	// conn.Write(bufWithWriter.Bytes())
 	buff := make([]byte, 1024)
 	conn.Read(buff)
-	conn.Write([]byte{0, 0, 0, 0, 0, 0, 0, 7})
+	
+	bufWithWriter := new(bytes.Buffer)
+
+	messageSize := uint32(0)
+	correlationId := uint32(7)
+	
+	// write the message_size and correlation_id to the buffer in BigEndian binary format
+	binary.Write(bufWithWriter, binary.BigEndian, messageSize)
+	binary.Write(bufWithWriter, binary.BigEndian, correlationId)
+
+	fmt.Printf("buf: % X", bufWithWriter.Bytes())
+
+	// respond to the client with the value stored in our buffer
+	conn.Write(bufWithWriter.Bytes())
 }
