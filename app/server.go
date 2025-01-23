@@ -34,9 +34,8 @@ func main() {
 	readBuf := []byte{}
 	_, _ = conn.Read(readBuf)
 
-	// create the write buffer and allocate 8 bytes to it
-	buf := [8]byte{}
-	writeBuf := bytes.NewBuffer(buf[:])
+	// create the write buffer 
+	writeBuf := bytes.Buffer{}
 
 	messageSize := uint32(0)
 	correlationId := uint32(7)
