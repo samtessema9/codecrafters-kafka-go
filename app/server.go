@@ -32,7 +32,7 @@ func main() {
 
 	// read and ignore clients message
 	readBuf := []byte{}
-	_, _ = conn.Read(readBuf)
+	conn.Read(readBuf)
 
 	// create write buffer
 	writeBuf := new(bytes.Buffer)
