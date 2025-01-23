@@ -31,7 +31,7 @@ func main() {
 	defer conn.Close()
 
 	// conn.Read()
-	buf := make([]byte, 8)
+	var buf []byte
 	bufWithWriter := bytes.NewBuffer(buf)
 
 	messageSize := uint32(4)
