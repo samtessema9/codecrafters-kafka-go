@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"encoding/binary"
+	// "bytes"
+	// "encoding/binary"
 	"fmt"
 	"net"
 	"os"
