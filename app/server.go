@@ -31,21 +31,37 @@ func handleConn(conn net.Conn) {
 	
 	readBuf := make([]byte, 1024)
 	conn.Read(readBuf)
-	fmt.Printf("Request: %v", readBuf)
+	// fmt.Printf("Request: %v", readBuf)
 
 	// create write buffer
 	writeBuf := new(bytes.Buffer)
 
-	messageSize := uint32(0)
+	messageSize := int32(19)
 	parsedRequest := parseRequest(readBuf)
 	correlationId := parsedRequest.headers.correlationId
 	apiVersion := parsedRequest.headers.requestApiVersion
 	errorCode := checkVersion(apiVersion)
+
+	// Construct ApiVersion v4 response 
+	apv := ApiVersionsResponse{}
+	apv.errorCode = errorCode
+	apv.throttleTimeMS = int32(3000)
+	apv.apiKeys = append(apv.apiKeys, 
+		ApiKey{
+			apiKey: 18,
+			minVersion: 0,
+			maxVersion: 4,
+		},
+	)
+	serializedResponse := apv.serialize()
 	
 	// write the message_size and correlation_id to the buffer in BigEndian binary format
 	binary.Write(writeBuf, binary.BigEndian, messageSize)
 	binary.Write(writeBuf, binary.BigEndian, correlationId)
-	binary.Write(writeBuf, binary.BigEndian, errorCode)
+	binary.Write(writeBuf, binary.BigEndian, serializedResponse)
+	binary.Write(writeBuf, binary.BigEndian, int8(0))
+	
+	fmt.Printf("Response: % X", writeBuf.Bytes())
 
 	// respond to the client with the value stored in our buffer
 	conn.Write(writeBuf.Bytes())
