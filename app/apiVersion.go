@@ -22,6 +22,7 @@ func (avr ApiVersionsResponse) serialize() []byte {
 
 	binary.Write(buf, binary.BigEndian, avr.errorCode)
 
+	// https://forum.codecrafters.io/t/question-about-handle-apiversions-requests-stage/1743
 	lenOfApiKeys := int8(len(avr.apiKeys)) + 1
 	binary.Write(buf, binary.BigEndian, lenOfApiKeys)
 

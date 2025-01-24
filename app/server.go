@@ -31,12 +31,10 @@ func handleConn(conn net.Conn) {
 	
 	readBuf := make([]byte, 1024)
 	conn.Read(readBuf)
-	// fmt.Printf("Request: %v", readBuf)
 
 	// create write buffer
 	writeBuf := new(bytes.Buffer)
 
-	messageSize := int32(19)
 	parsedRequest := parseRequest(readBuf)
 	correlationId := parsedRequest.headers.correlationId
 	apiVersion := parsedRequest.headers.requestApiVersion
@@ -56,13 +54,21 @@ func handleConn(conn net.Conn) {
 	serializedResponse := apv.serialize()
 	
 	// write the message_size and correlation_id to the buffer in BigEndian binary format
-	binary.Write(writeBuf, binary.BigEndian, messageSize)
+	// binary.Write(writeBuf, binary.BigEndian, int32(0))
 	binary.Write(writeBuf, binary.BigEndian, correlationId)
 	binary.Write(writeBuf, binary.BigEndian, serializedResponse)
 	binary.Write(writeBuf, binary.BigEndian, int8(0))
-	
-	fmt.Printf("Response: % X", writeBuf.Bytes())
+
+	messageSize := int32(len(writeBuf.Bytes()))
+
+	output := new(bytes.Buffer)
+
+	binary.Write(output, binary.BigEndian, messageSize)
+	binary.Write(output, binary.BigEndian, writeBuf.Bytes())
 
 	// respond to the client with the value stored in our buffer
 	conn.Write(writeBuf.Bytes())
 }
+
+
+ 
