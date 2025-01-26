@@ -17,13 +17,15 @@ func main() {
 	defer l.Close()
 	fmt.Println("Server is listening on port 9092...")
 
-	conn, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection: ", err.Error())
+			os.Exit(1)
+		}
+	
+		go handleConn(conn)
 	}
-
-	handleConn(conn)
 }
 
 func handleConn(conn net.Conn) {
