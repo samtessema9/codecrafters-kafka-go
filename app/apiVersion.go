@@ -23,16 +23,18 @@ func (avr ApiVersionsResponse) serialize() []byte {
 	binary.Write(buf, binary.BigEndian, avr.errorCode)
 
 	// https://forum.codecrafters.io/t/question-about-handle-apiversions-requests-stage/1743
-	lenOfApiKeys := int8(len(avr.apiKeys)) + 1
+	// keyLenBuffer := make([]byte, binary.MaxVarintLen64)
+	lenOfApiKeys := int8(len(avr.apiKeys) + 1)
 	binary.Write(buf, binary.BigEndian, lenOfApiKeys)
 
 	for _, apiKey := range avr.apiKeys {
 		serializedApiKey := apiKey.serialize()
 		binary.Write(buf, binary.BigEndian, serializedApiKey)
+
+		taggedFields := int8(0)
+		binary.Write(buf, binary.BigEndian, taggedFields)
 	}
 
-	taggedFields := int8(0)
-	binary.Write(buf, binary.BigEndian, taggedFields)
 	binary.Write(buf, binary.BigEndian, avr.throttleTimeMS)
 
 	return buf.Bytes()

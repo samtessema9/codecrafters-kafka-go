@@ -53,16 +53,21 @@ func handleConn(conn net.Conn) {
 				minVersion: 0,
 				maxVersion: 4,
 			},
+			ApiKey{
+				apiKey: 75,
+				minVersion: 0,
+				maxVersion: 0,
+			},
 		)
 		serializedResponse := apv.serialize()
-		messageLength := int32(19)
+		messageLength := int32(26)
 		
 		// write the message_size and correlation_id to the buffer in BigEndian binary format
 		binary.Write(writeBuf, binary.BigEndian, messageLength)
 		binary.Write(writeBuf, binary.BigEndian, correlationId)
 		binary.Write(writeBuf, binary.BigEndian, serializedResponse)
 		binary.Write(writeBuf, binary.BigEndian, int8(0))
-	
+
 		// respond to the client with the value stored in our buffer
 		conn.Write(writeBuf.Bytes())
 	}
