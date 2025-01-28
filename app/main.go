@@ -39,31 +39,50 @@ func handleConn(conn net.Conn) {
 		writeBuf := new(bytes.Buffer)
 	
 		parsedRequest := parseRequest(readBuf)
-		correlationId := parsedRequest.headers.correlationId
-		apiVersion := parsedRequest.headers.requestApiVersion
-		errorCode := checkVersion(apiVersion)
+		topicName := parseTopicName(parsedRequest.body)
+		fmt.Printf("Parsed Name: (len)%v (value)%v", topicName.length, topicName.value)
+		responseBody := DescribeTopicPartitionsResponse{
+			topics: []Topic{
+				{
+					errorCode: 3,
+					name: topicName,
+					partitions: []Partition{},
+				},
+			},
+		}
+		serializedResponse := responseBody.serialize()
+		// correlationId := parsedRequest.headers.correlationId
+		// apiVersion := parsedRequest.headers.requestApiVersion
+		// errorCode := checkVersion(apiVersion)
 	
 		// Construct ApiVersion v4 response 
-		apv := ApiVersionsResponse{}
-		apv.errorCode = errorCode
-		apv.throttleTimeMS = int32(3000)
-		apv.apiKeys = append(apv.apiKeys, 
-			ApiKey{
-				apiKey: 18,
-				minVersion: 0,
-				maxVersion: 4,
-			},
-			ApiKey{
-				apiKey: 75,
-				minVersion: 0,
-				maxVersion: 0,
-			},
-		)
-		serializedResponse := apv.serialize()
+		// apv := ApiVersionsResponse{}
+		// apv.errorCode = errorCode
+		// apv.throttleTimeMS = int32(3000)
+		// apv.apiKeys = append(apv.apiKeys, 
+		// 	ApiKey{
+		// 		apiKey: 18,
+		// 		minVersion: 0,
+		// 		maxVersion: 4,
+		// 	},
+		// 	ApiKey{
+		// 		apiKey: 75,
+		// 		minVersion: 0,
+		// 		maxVersion: 0,
+		// 	},
+		// )
+		// serializedResponse := apv.serialize()
 		
 		// write the message_size and correlation_id to the buffer in BigEndian binary format
-		binary.Write(writeBuf, binary.BigEndian, correlationId)
+		// binary.Write(writeBuf, binary.BigEndian, serializedResponse)
+
+		// write headers
+		binary.Write(writeBuf, binary.BigEndian, parsedRequest.headers.correlationId)
+		binary.Write(writeBuf, binary.BigEndian, int8(0)) 
+
+		// write body
 		binary.Write(writeBuf, binary.BigEndian, serializedResponse)
+
 		// Add a byte for TAG_BUFFER
 		binary.Write(writeBuf, binary.BigEndian, int8(0)) 
 

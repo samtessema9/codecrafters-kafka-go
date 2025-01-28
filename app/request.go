@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/binary"
+	"fmt"
 )
 
 type Request struct {
 	messageSize uint32
 	headers     RequestHeadersV2
-	body        RequestBody
+	body        []byte
 }
 
 type RequestHeadersV2 struct {
@@ -15,14 +16,10 @@ type RequestHeadersV2 struct {
 	requestApiVersion uint16
 	correlationId     uint32
 	clientId          NullableString
-	tagBuffer         ComapactArray
+	tagBuffer         int8 // TODO: This assumes an empty TAG_BUFFER. This is true for now but needs to be adressed at some point. 
 }
 
 type RequestBody struct {
-	// TODO
-}
-
-type NullableString struct {
 	// TODO
 }
 
@@ -33,10 +30,28 @@ type ComapactArray struct {
 func parseRequest(rawRequest []byte) Request {
 	r := Request{}
 
+	// Parse Headers from request 
 	r.messageSize = binary.BigEndian.Uint32(rawRequest[:4])
 	r.headers.requestApiKey = binary.BigEndian.Uint16(rawRequest[4:6])
 	r.headers.requestApiVersion = binary.BigEndian.Uint16(rawRequest[6:8])
 	r.headers.correlationId = binary.BigEndian.Uint32(rawRequest[8:12])
+	r.headers.clientId = parseNullableString(rawRequest[12:])
+
+	// Calculate the offset and jump to the TAG_BUFFER that comes after the clientId
+	offset := r.headers.clientId.length + 2
+	r.headers.tagBuffer = int8(rawRequest[12 + offset])
+
+	// Parse Body from request 
+	r.body = rawRequest[12 + offset + 1:]
 
 	return r
+}
+
+func parseTopicName(buf []byte) CompactNullableString {
+	// _, _ := binary.Varint(buf)
+	fmt.Printf("\nName length byte: % X", buf[1])
+	fmt.Printf("\nBody: %v", string(buf[1:]))
+	cs := parseCompactNullableString(buf[1:])
+
+	return cs
 }
