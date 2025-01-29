@@ -40,6 +40,9 @@ func (avr ApiVersionsResponse) serialize() []byte {
 
 	binary.Write(buf, binary.BigEndian, avr.throttleTimeMS)
 
+	// TAG_BUFFER 
+	binary.Write(buf, binary.BigEndian, int8(0)) 
+
 	return buf.Bytes()
 }
 
