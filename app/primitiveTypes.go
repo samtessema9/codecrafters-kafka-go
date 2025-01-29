@@ -120,6 +120,8 @@ func (uuid UUID) serialize() []byte {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Printf("\nSerialized uuid: % X", b)
+	fmt.Printf("\nSize of Serialized uuid: %v", len(b))
 
 	return b
 }

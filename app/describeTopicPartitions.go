@@ -82,41 +82,61 @@ func (dtpr DescribeTopicPartitionsRequest) parse(buf []byte) {
 }
 
 func (dtpr DescribeTopicPartitionsResponse) serialize() []byte {
-	buf := new(bytes.Buffer)
+	// buf := new(bytes.Buffer)
+	buf := make([]byte, 0)
 
-	binary.Write(buf, binary.BigEndian, dtpr.throttleTimeMS)
+	// binary.Write(buf, binary.BigEndian, dtpr.throttleTimeMS)
+	buf = binary.BigEndian.AppendUint32(buf, uint32(dtpr.throttleTimeMS))
 
-	lenOfTopics := int8(len(dtpr.topics) + 1)
-	binary.Write(buf, binary.BigEndian, lenOfTopics)
+	// lenOfTopics := int8(len(dtpr.topics) + 1)
+	// binary.Write(buf, binary.BigEndian, lenOfTopics)
+	buf = append(buf, uint8(len(dtpr.topics)+1))
 
 	for _, topic := range dtpr.topics {
 		serializedTopic := topic.serialize()
-		binary.Write(buf, binary.BigEndian, serializedTopic)
+		// binary.Write(buf, binary.BigEndian, serializedTopic)
+		buf = append(buf, serializedTopic...)
 	}
 
-	binary.Write(buf, binary.BigEndian, dtpr.nextCursor.serialize())
+	// binary.Write(buf, binary.BigEndian, dtpr.nextCursor.serialize())
+	buf = append(buf, dtpr.nextCursor.serialize()...)
 
 	// TAG_BUFFER
-	binary.Write(buf, binary.BigEndian, int8(0))
+	// binary.Write(buf, binary.BigEndian, int8(0))
+	buf = append(buf, uint8(0))
 
-	return buf.Bytes()
+	// return buf.Bytes()
+	return buf
 }
 
 func (topic Topic) serialize() []byte {
-	buf := new(bytes.Buffer)
+	// buf := new(bytes.Buffer)
+	buf := make([]byte, 0)
 
-	binary.Write(buf, binary.BigEndian, topic.errorCode)
-	binary.Write(buf, binary.BigEndian, topic.name.serialize())
+	// binary.Write(buf, binary.BigEndian, topic.errorCode)
+	// binary.Write(buf, binary.BigEndian, topic.name.serialize())
+	buf = binary.BigEndian.AppendUint16(buf, uint16(topic.errorCode))
+	buf = append(buf, byte(len(topic.name.value) + 1))
+	buf = append(buf, []byte(topic.name.value)...)
 
 	uuid := generateUUID()
-	binary.Write(buf, binary.BigEndian, uuid.serialize())
+	// binary.Write(buf, binary.BigEndian, uuid.serialize())
+	buf = append(buf, uuid.serialize()...)
+	// binary.Write(buf, binary.BigEndian, []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,})
 
-	binary.Write(buf, binary.BigEndian, topic.isInternal)
-	binary.Write(buf, binary.BigEndian, int8(len(topic.partitions) + 1))
-	binary.Write(buf, binary.BigEndian, topic.topicAuthorizedOperations)
+	// binary.Write(buf, binary.BigEndian, topic.isInternal)
+	buf = append(buf, byte(1))
+	// binary.Write(buf, binary.BigEndian, int8(len(topic.partitions) + 1))
+	buf = append(buf,byte(len(topic.partitions) + 1) )
+	// binary.Write(buf, binary.BigEndian, topic.topicAuthorizedOperations)
+	// binary.Write(buf, binary.BigEndian, []byte{0x00, 0x00, 0x0d, 0xf8})
+	buf = binary.BigEndian.AppendUint32(buf, uint32(topic.topicAuthorizedOperations))
+
 	// TAG_BUFFER
-	binary.Write(buf, binary.BigEndian, int8(0))
+	// binary.Write(buf, binary.BigEndian, int8(0))
+	buf = append(buf, uint8(0))
 
-	return buf.Bytes()
+	// return buf.Bytes()
+	return buf
 }
 

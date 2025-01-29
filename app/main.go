@@ -39,54 +39,63 @@ func handleConn(conn net.Conn) {
 		writeBuf := new(bytes.Buffer)
 	
 		parsedRequest := parseRequest(readBuf)
-		topicName := parseTopicName(parsedRequest.body)
-		fmt.Printf("Parsed Name: (len)%v (value)%v", topicName.length, topicName.value)
-		responseBody := DescribeTopicPartitionsResponse{
-			topics: []Topic{
-				{
-					errorCode: 3,
-					name: topicName,
-					partitions: []Partition{},
+
+		var serializedResponse []byte
+		if parsedRequest.headers.requestApiKey == 18 {
+			// Construct ApiVersion v4 response 
+			errorCode := checkVersion(parsedRequest.headers.requestApiVersion)
+			apv := ApiVersionsResponse{}
+			apv.errorCode = errorCode
+			fmt.Printf("apv.errorCode: %v", apv.errorCode)
+			apv.throttleTimeMS = int32(0)
+			apv.apiKeys = append(apv.apiKeys, 
+				ApiKey{
+					apiKey: 18,
+					minVersion: 0,
+					maxVersion: 4,
 				},
-			},
+				ApiKey{
+					apiKey: 75,
+					minVersion: 0,
+					maxVersion: 0,
+				},
+			)
+			serializedResponse = apv.serialize()
+		} else if parsedRequest.headers.requestApiKey == 75 {
+			topicName := parseTopicName(parsedRequest.body)
+			fmt.Printf("Parsed Name: (len)%v (value)%v", topicName.length, topicName.value)
+			responseBody := DescribeTopicPartitionsResponse{
+				topics: []Topic{
+					{
+						errorCode: 3,
+						name: topicName,
+						partitions: []Partition{},
+					},
+				},
+			}
+			serializedResponse = responseBody.serialize()
 		}
-		serializedResponse := responseBody.serialize()
-		// correlationId := parsedRequest.headers.correlationId
-		// apiVersion := parsedRequest.headers.requestApiVersion
-		// errorCode := checkVersion(apiVersion)
-	
-		// Construct ApiVersion v4 response 
-		// apv := ApiVersionsResponse{}
-		// apv.errorCode = errorCode
-		// apv.throttleTimeMS = int32(3000)
-		// apv.apiKeys = append(apv.apiKeys, 
-		// 	ApiKey{
-		// 		apiKey: 18,
-		// 		minVersion: 0,
-		// 		maxVersion: 4,
-		// 	},
-		// 	ApiKey{
-		// 		apiKey: 75,
-		// 		minVersion: 0,
-		// 		maxVersion: 0,
-		// 	},
-		// )
-		// serializedResponse := apv.serialize()
 		
 		// write the message_size and correlation_id to the buffer in BigEndian binary format
 		// binary.Write(writeBuf, binary.BigEndian, serializedResponse)
 
 		// write headers
 		binary.Write(writeBuf, binary.BigEndian, parsedRequest.headers.correlationId)
-		binary.Write(writeBuf, binary.BigEndian, int8(0)) 
+
+		if parsedRequest.headers.requestApiKey == 75 {
+			binary.Write(writeBuf, binary.BigEndian, int8(0)) 
+		}
 
 		// write body
 		binary.Write(writeBuf, binary.BigEndian, serializedResponse)
+		fmt.Printf("\nSerializedResponse: % X", serializedResponse)
+		fmt.Printf("\nFial writeBuf: % X", writeBuf.Bytes())
 
 		// Add a byte for TAG_BUFFER
-		binary.Write(writeBuf, binary.BigEndian, int8(0)) 
+		// binary.Write(writeBuf, binary.BigEndian, int8(0)) 
 
 		messageSize := int32(len(writeBuf.Bytes()))
+		// fmt.Printf("\nMessage size: %v", messageSize)
 		output := new(bytes.Buffer)
 		binary.Write(output, binary.BigEndian, messageSize)
 		binary.Write(output, binary.BigEndian, writeBuf.Bytes())

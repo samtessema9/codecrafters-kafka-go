@@ -13,7 +13,7 @@ type Request struct {
 
 type RequestHeadersV2 struct {
 	requestApiKey     uint16
-	requestApiVersion uint16
+	requestApiVersion int16
 	correlationId     uint32
 	clientId          NullableString
 	tagBuffer         int8 // TODO: This assumes an empty TAG_BUFFER. This is true for now but needs to be adressed at some point. 
@@ -33,7 +33,9 @@ func parseRequest(rawRequest []byte) Request {
 	// Parse Headers from request 
 	r.messageSize = binary.BigEndian.Uint32(rawRequest[:4])
 	r.headers.requestApiKey = binary.BigEndian.Uint16(rawRequest[4:6])
-	r.headers.requestApiVersion = binary.BigEndian.Uint16(rawRequest[6:8])
+	// r.headers.requestApiVersion = binary.BigEndian.Uint16(rawRequest[6:8])
+	r.headers.requestApiVersion = int16(binary.BigEndian.Uint16(rawRequest[6:8]))
+	fmt.Printf("ApiVersion parsed out: %v",int16(binary.BigEndian.Uint16(rawRequest[6:8])))
 	r.headers.correlationId = binary.BigEndian.Uint32(rawRequest[8:12])
 	r.headers.clientId = parseNullableString(rawRequest[12:])
 

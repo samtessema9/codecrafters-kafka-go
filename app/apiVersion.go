@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 )
 
 type ApiVersionsResponse struct {
@@ -21,10 +22,12 @@ func (avr ApiVersionsResponse) serialize() []byte {
 	buf := new(bytes.Buffer)
 
 	binary.Write(buf, binary.BigEndian, avr.errorCode)
+	fmt.Printf("Buffer containing error code: % X", buf.Bytes())
 
 	// https://forum.codecrafters.io/t/question-about-handle-apiversions-requests-stage/1743
 	// keyLenBuffer := make([]byte, binary.MaxVarintLen64)
 	lenOfApiKeys := int8(len(avr.apiKeys) + 1)
+
 	binary.Write(buf, binary.BigEndian, lenOfApiKeys)
 
 	for _, apiKey := range avr.apiKeys {
@@ -50,9 +53,10 @@ func (ak ApiKey) serialize() []byte {
 	return buf.Bytes()
 }
 
-func checkVersion(version uint16) int16 {
+func checkVersion(version int16) int16 {
 	if version >= 0 && version <= 4 {
 		return int16(0)
 	}
+	fmt.Println("returning 35 from checkVersion")
 	return int16(35)
 }
