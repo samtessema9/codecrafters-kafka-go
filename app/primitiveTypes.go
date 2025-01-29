@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"strings"
 )
 
@@ -55,12 +54,7 @@ func (cns CompactNullableString) serialize() []byte {
 func parseCompactNullableString(source []byte) CompactNullableString {
 	// TODO: we are assuming length of name is always 1. Should be parsed as a varint?
 	length := int(source[0])
-
-	// length, offset := binary.Varint(source)
-	fmt.Printf("\nName length in parse method: %v", length)
 	value := string(source[1 : length])
-	fmt.Printf("\nName value in parse method: %v", value)
-
 
 	if length == 0 {
 		return CompactNullableString{
@@ -122,12 +116,17 @@ func (uuid UUID) serialize() []byte {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("\nSerialized uuid: % X", b)
-	fmt.Printf("\nSize of Serialized uuid: %v", len(b))
 
 	return b
 }
 
 type TagBuffer struct {
 	// TODO
+}
+
+func boolToByte(x bool) byte {
+    if x {
+        return 1
+    }
+    return 0
 }

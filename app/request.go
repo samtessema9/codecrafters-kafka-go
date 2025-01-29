@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/binary"
-	"fmt"
 )
 
 type Request struct {
@@ -33,9 +32,7 @@ func parseRequest(rawRequest []byte) Request {
 	// Parse Headers from request 
 	r.messageSize = binary.BigEndian.Uint32(rawRequest[:4])
 	r.headers.requestApiKey = binary.BigEndian.Uint16(rawRequest[4:6])
-	// r.headers.requestApiVersion = binary.BigEndian.Uint16(rawRequest[6:8])
 	r.headers.requestApiVersion = int16(binary.BigEndian.Uint16(rawRequest[6:8]))
-	fmt.Printf("ApiVersion parsed out: %v",int16(binary.BigEndian.Uint16(rawRequest[6:8])))
 	r.headers.correlationId = binary.BigEndian.Uint32(rawRequest[8:12])
 	r.headers.clientId = parseNullableString(rawRequest[12:])
 
@@ -50,9 +47,6 @@ func parseRequest(rawRequest []byte) Request {
 }
 
 func parseTopicName(buf []byte) CompactNullableString {
-	// _, _ := binary.Varint(buf)
-	fmt.Printf("\nName length byte: % X", buf[1])
-	fmt.Printf("\nBody: %v", string(buf[1:]))
 	cs := parseCompactNullableString(buf[1:])
 
 	return cs
