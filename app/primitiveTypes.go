@@ -39,15 +39,17 @@ type CompactNullableString struct {
 func (cns CompactNullableString) serialize() []byte {
 	buf := new(bytes.Buffer)
 
-	tmp := make([]byte, binary.MaxVarintLen64)
-    binary.PutVarint(tmp, cns.length)
-	binary.Write(buf, binary.BigEndian, tmp)
-
-	if _, err := buf.WriteString(cns.value); err != nil {
-        panic(err)
-    }
+	buf.Write([]byte{byte(len(cns.value) + 1)})
+	buf.WriteString(cns.value)
 
 	return buf.Bytes()
+
+	// buf := make([]byte, 0)
+
+	// buf = append(buf, byte(len(cns.value) + 1))
+	// buf = append(buf, []byte(cns.value)...)
+
+	// return buf
 }
 
 func parseCompactNullableString(source []byte) CompactNullableString {

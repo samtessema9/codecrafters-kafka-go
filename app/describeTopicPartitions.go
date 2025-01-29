@@ -112,33 +112,39 @@ func (dtpr DescribeTopicPartitionsResponse) serialize() []byte {
 }
 
 func (topic Topic) serialize() []byte {
-	// buf := new(bytes.Buffer)
-	buf := make([]byte, 0)
+	buf := new(bytes.Buffer)
+	// b := make([]byte, 0)
+	// buf := bytes.NewBuffer(b)
 
-	// binary.Write(buf, binary.BigEndian, topic.errorCode)
-	// binary.Write(buf, binary.BigEndian, topic.name.serialize())
-	buf = binary.BigEndian.AppendUint16(buf, uint16(topic.errorCode))
-	buf = append(buf, byte(len(topic.name.value) + 1))
-	buf = append(buf, []byte(topic.name.value)...)
+	binary.Write(buf, binary.BigEndian, topic.errorCode)
+	buf.Write(topic.name.serialize())
+	// buf = binary.BigEndian.AppendUint16(buf, uint16(topic.errorCode))
+	// buf = append(buf, byte(len(topic.name.value) + 1))
+	// buf = append(buf, []byte(topic.name.value)...)
 
 	uuid := generateUUID()
-	// binary.Write(buf, binary.BigEndian, uuid.serialize())
-	buf = append(buf, uuid.serialize()...)
+	binary.Write(buf, binary.BigEndian, uuid.serialize())
+	// buf = append(buf, uuid.serialize()...)
 	// binary.Write(buf, binary.BigEndian, []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,})
 
 	// binary.Write(buf, binary.BigEndian, topic.isInternal)
-	buf = append(buf, byte(1))
+	buf.Write([]byte{1})
+	// buf = append(buf, byte(1))
+
 	// binary.Write(buf, binary.BigEndian, int8(len(topic.partitions) + 1))
-	buf = append(buf, byte(len(topic.partitions) + 1) )
-	// binary.Write(buf, binary.BigEndian, topic.topicAuthorizedOperations)
+	// buf = append(buf, byte(len(topic.partitions) + 1) )
+	buf.Write([]byte{byte(len(topic.partitions) + 1)})
+
+	binary.Write(buf, binary.BigEndian, topic.topicAuthorizedOperations)
 	// binary.Write(buf, binary.BigEndian, []byte{0x00, 0x00, 0x0d, 0xf8})
-	buf = binary.BigEndian.AppendUint32(buf, uint32(topic.topicAuthorizedOperations))
+	// buf = binary.BigEndian.AppendUint32(buf, uint32(topic.topicAuthorizedOperations))
 
 	// TAG_BUFFER
 	// binary.Write(buf, binary.BigEndian, int8(0))
-	buf = append(buf, uint8(0))
+	// buf = append(buf, uint8(0))
+	buf.Write([]byte{0})
 
 	// return buf.Bytes()
-	return buf
+	return buf.Bytes()
 }
 
