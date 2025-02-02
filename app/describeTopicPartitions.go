@@ -19,6 +19,27 @@ type DescribeTopicPartitionsRequest struct {
 	tagBuffer int8
 }
 
+// DescribeTopicPartitions Response (Version: 0) => throttle_time_ms [topics] next_cursor TAG_BUFFER 
+//   throttle_time_ms => INT32
+//   topics => error_code name topic_id is_internal [partitions] topic_authorized_operations TAG_BUFFER 
+//     error_code => INT16
+//     name => COMPACT_NULLABLE_STRING
+//     topic_id => UUID
+//     is_internal => BOOLEAN
+//     partitions => error_code partition_index leader_id leader_epoch [replica_nodes] [isr_nodes] [eligible_leader_replicas] [last_known_elr] [offline_replicas] TAG_BUFFER 
+//       error_code => INT16
+//       partition_index => INT32
+//       leader_id => INT32
+//       leader_epoch => INT32
+//       replica_nodes => INT32
+//       isr_nodes => INT32
+//       eligible_leader_replicas => INT32
+//       last_known_elr => INT32
+//       offline_replicas => INT32
+//     topic_authorized_operations => INT32
+//   next_cursor => topic_name partition_index TAG_BUFFER 
+//     topic_name => COMPACT_STRING
+//     partition_index => INT32
 type DescribeTopicPartitionsResponse struct {
 	throttleTimeMS int32
 	topics         []Topic
@@ -29,7 +50,7 @@ type DescribeTopicPartitionsResponse struct {
 type Topic struct {
 	errorCode                 int16
 	name                      CompactNullableString
-	topicID                   UUID
+	topicID                   UUID  // TODO: change this to use "github.com/gofrs/uuid/v5" package
 	isInternal                bool
 	partitions                []Partition
 	topicAuthorizedOperations int32
@@ -68,6 +89,9 @@ type Partition struct {
 	lastKnownElr           []int32
 	offlineReplicas        []int32
 	tagBuffer              int8
+
+	// The following fields are not part of the serialized response of this type
+	topicID				   UUID
 }
 
 func (dtpr DescribeTopicPartitionsRequest) parse(buf []byte) {

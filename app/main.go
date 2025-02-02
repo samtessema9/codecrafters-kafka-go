@@ -65,7 +65,7 @@ func handleConn(conn net.Conn) {
 			responseBody := DescribeTopicPartitionsResponse{
 				topics: []Topic{
 					{
-						errorCode: 3,
+						errorCode: 0,
 						name: topicName,
 						partitions: []Partition{},
 					},
