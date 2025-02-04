@@ -12,7 +12,7 @@ import (
 type ClusterMetadataLogline struct {
 }
 
-func parseClusterMetadataLogline(logLine []byte) (topics []Topic) {
+func parseClusterMetadataLogline() (topics map[string]Topic) {
 	data, err := os.ReadFile("/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log")
 	if err != nil {
 		fmt.Errorf("Error parsing metadata logfile: %v", err)
@@ -163,7 +163,7 @@ func parseClusterMetadataLogline(logLine []byte) (topics []Topic) {
 	}
 }
 
-func coorelateTopicsAndPartitions(topicsMap map[UUID]Topic, partitions []Partition) []Topic {
+func coorelateTopicsAndPartitions(topicsMap map[UUID]Topic, partitions []Partition) map[string]Topic {
 	for _, partition := range partitions {
 		topic, ok := topicsMap[partition.topicID]
 		if ok {
@@ -171,10 +171,11 @@ func coorelateTopicsAndPartitions(topicsMap map[UUID]Topic, partitions []Partiti
 		}
 	}
 
-	topics := make([]Topic, len(topicsMap))
+	// change the mapping to use the topic names as the key
+	topics := map[string]Topic{}
 
 	for _, topic := range topicsMap {
-		topics = append(topics, topic)
+		topics[topic.name.value] = topic
 	}
 
 	return topics

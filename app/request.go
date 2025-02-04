@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
+	"fmt"
 )
 
 type Request struct {
@@ -46,8 +48,24 @@ func parseRequest(rawRequest []byte) Request {
 	return r
 }
 
-func parseTopicName(buf []byte) CompactNullableString {
-	cs := parseCompactNullableString(buf[1:])
+func parseTopicNames(buf []byte) []string {
+	bufReader := bytes.NewBuffer(buf)
 
-	return cs
+	lenOfTopics, err := binary.ReadVarint(bufReader)
+	if err != nil {
+		fmt.Errorf("Error parsing len of topics (in: parseTopicName): ", err)
+	}
+
+	names := []string{}
+	for range lenOfTopics - 1 {
+		lenOfName, err := binary.ReadVarint(bufReader)
+		if err != nil {
+			fmt.Errorf("Error parsing len of name (in: parseTopicName): ", err)
+		}
+
+		name := string(bufReader.Next(int(lenOfName) - 1))
+		names = append(names, name)
+	}
+
+	return names
 }

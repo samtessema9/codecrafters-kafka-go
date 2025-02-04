@@ -61,15 +61,22 @@ func handleConn(conn net.Conn) {
 			)
 			serializedResponse = apv.serialize()
 		} else if parsedRequest.headers.requestApiKey == 75 {
-			topicName := parseTopicName(parsedRequest.body)
+			topicNames := parseTopicNames(parsedRequest.body)
+			parsedTopics := parseClusterMetadataLogline()
+			
+			relevantTopics := func(topics map[string]Topic, names []string) (filteredTopics []Topic) {
+				for _, name := range names {
+					topic, ok := topics[name]
+					if ok {
+						filteredTopics = append(filteredTopics, topic)
+					}
+				}
+
+				return filteredTopics
+			}(parsedTopics, topicNames)
+
 			responseBody := DescribeTopicPartitionsResponse{
-				topics: []Topic{
-					{
-						errorCode:  0,
-						name:       topicName,
-						partitions: []Partition{},
-					},
-				},
+				topics: relevantTopics,
 			}
 			serializedResponse = responseBody.serialize()
 		}
