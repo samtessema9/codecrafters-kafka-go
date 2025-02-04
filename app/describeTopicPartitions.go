@@ -107,7 +107,7 @@ func (dtpr DescribeTopicPartitionsRequest) parse(buf []byte) {
 
 func (dtpr DescribeTopicPartitionsResponse) serialize() []byte {
 	buf := new(bytes.Buffer)
-
+	
 	// Throttle time (ms)
 	binary.Write(buf, binary.BigEndian, uint32(dtpr.throttleTimeMS))
 
@@ -148,6 +148,12 @@ func (topic Topic) serialize() []byte {
 	// Partition Length
 	buf.Write([]byte{byte(len(topic.partitions) + 1)})
 
+	// Partitions
+	for _, partition := range topic.partitions {
+		serializedPartition := partition.serialize()
+		binary.Write(buf, binary.BigEndian, serializedPartition)
+	}
+
 	// Authorized Operations
 	binary.Write(buf, binary.BigEndian, topic.topicAuthorizedOperations)
 
@@ -157,3 +163,38 @@ func (topic Topic) serialize() []byte {
 	return buf.Bytes()
 }
 
+func (partition Partition) serialize() []byte {
+	buf := new(bytes.Buffer)
+
+	// ErrorCode
+	binary.Write(buf, binary.BigEndian, partition.errorCode)
+
+	// Partition Index
+	binary.Write(buf, binary.BigEndian, partition.partitionIndex)
+
+	// Leader ID
+	binary.Write(buf, binary.BigEndian, partition.leaderId)
+
+	// Leader Epoch
+	binary.Write(buf, binary.BigEndian, partition.leaderEpoch)
+
+	// Replica nodes
+	binary.Write(buf, binary.BigEndian, serializeArray(partition.replicaNodes))
+
+	// ISR Nodes
+	binary.Write(buf, binary.BigEndian, serializeArray(partition.isrNodes))
+
+	// Eligible Replicas
+	binary.Write(buf, binary.BigEndian, serializeArray(partition.eligibleLeaderReplicas))
+
+	// Last Known ELR
+	binary.Write(buf, binary.BigEndian, serializeArray(partition.lastKnownElr))
+
+	// Offline Replicas
+	binary.Write(buf, binary.BigEndian, serializeArray(partition.offlineReplicas))
+
+	// TAG_BUFFER
+	buf.Write([]byte{0})
+
+	return buf.Bytes()
+}

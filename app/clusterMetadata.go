@@ -13,7 +13,7 @@ type ClusterMetadataLogline struct {
 
 }
 
-func parseClusterMetadataLogline(logLine []byte) {
+func parseClusterMetadataLogline(logLine []byte) (topics []Topic) {
 	data, err := os.ReadFile("/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log")
 	if err != nil {
 		fmt.Errorf("Error parsing metadata logfile: %v", err)
@@ -132,19 +132,51 @@ func parseClusterMetadataLogline(logLine []byte) {
 				partition.isrNodes = make([]int32, lenOfISRReplicaArr - 1)
 				_ = binary.Read(valueBuf, binary.BigEndian, partition.isrNodes)
 
-				
+				_, _ = binary.ReadUvarint(valueBuf)  // Discard - Length of Removing Replicas array
+				_, _ = binary.ReadUvarint(valueBuf)  // Discard - Length of Adding Replicas array
+
+				_ = binary.Read(valueBuf, binary.BigEndian, &partition.leaderId)
+				_ = binary.Read(valueBuf, binary.BigEndian, &partition.leaderEpoch)
+
+				_ = valueBuf.Next(4)  // Discard Partition Epoch
+
+				lenOfDirArr, err := binary.ReadUvarint(valueBuf)  // Length of Directrories Array
+				if err != nil {
+					fmt.Errorf("Error Parsing Length of Directrories Array: %v", err)
+				}
+				_ = valueBuf.Next((int(lenOfDirArr - 1)) * 16)  // Discard the contents of the Directories Array
+
+				_ = valueBuf.Next(1)  // Discard tagged fields - this assumes tagged fields is 0
+
+				partitions = append(partitions, partition)
 
 			default:
 				// remove Headers Array Count (unsigned varint)
-				_, _ = binary.ReadVarint(buf)
+				_, _ = binary.ReadUvarint(buf)
 				continue
 			}
 
-
 			// remove Headers Array Count (unsigned varint)
-			_, _ = binary.ReadVarint(buf)
+			_, _ = binary.ReadUvarint(buf)
+		}
+
+		return coorelateTopicsAndPartitions(topics, partitions) 
+	}
+}
+
+func coorelateTopicsAndPartitions(topicsMap map[UUID]Topic, partitions []Partition) []Topic {
+	for _, partition := range partitions {
+		topic, ok := topicsMap[partition.topicID]
+		if ok {
+			topic.partitions = append(topic.partitions, partition)
 		}
 	}
 
+	topics := make([]Topic, len(topicsMap))
 
+	for _, topic := range topicsMap {
+		topics = append(topics, topic)
+	}
+
+	return topics
 }

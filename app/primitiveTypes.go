@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"strings"
+
+	"golang.org/x/exp/constraints"
 )
 
 type NullableString struct {
@@ -129,4 +131,23 @@ func boolToByte(x bool) byte {
         return 1
     }
     return 0
+}
+
+// Define a constraint that includes all integer types
+type Integer interface {
+	constraints.Integer
+}
+
+func serializeArray[T Integer](arr []T) []byte {
+	buf := new(bytes.Buffer)
+
+	// TODO: we're assuming len will be 1 byte. make this dynamic.
+	lenOfArr := int8(len(arr) + 1)
+	binary.Write(buf, binary.BigEndian, lenOfArr)
+
+	for _, num := range arr {
+		binary.Write(buf, binary.BigEndian, num)
+	}
+
+	return buf.Bytes()
 }
