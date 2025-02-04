@@ -20,7 +20,7 @@ func parseNullableString(source []byte) NullableString {
 	if length == -1 {
 		return NullableString{
 			length: 0,
-			value: "",
+			value:  "",
 		}
 	}
 
@@ -34,8 +34,8 @@ func parseNullableString(source []byte) NullableString {
 
 type CompactNullableString struct {
 	length int64
-	value string
-} 
+	value  string
+}
 
 func (cns CompactNullableString) serialize() []byte {
 	buf := new(bytes.Buffer)
@@ -56,12 +56,12 @@ func (cns CompactNullableString) serialize() []byte {
 func parseCompactNullableString(source []byte) CompactNullableString {
 	// TODO: we are assuming length of name is always 1. Should be parsed as a varint?
 	length := int(source[0])
-	value := string(source[1 : length])
+	value := string(source[1:length])
 
 	if length == 0 {
 		return CompactNullableString{
 			length: 0,
-			value: "",
+			value:  "",
 		}
 	}
 
@@ -73,19 +73,19 @@ func parseCompactNullableString(source []byte) CompactNullableString {
 
 type CompactString struct {
 	length int64
-	value string 
+	value  string
 }
 
 func (cs CompactString) serialize() []byte {
 	buf := new(bytes.Buffer)
 
-    tmp := make([]byte, binary.MaxVarintLen64)
-    binary.PutVarint(tmp, cs.length)
+	tmp := make([]byte, binary.MaxVarintLen64)
+	binary.PutVarint(tmp, cs.length)
 	binary.Write(buf, binary.BigEndian, tmp)
 
 	if _, err := buf.WriteString(cs.value); err != nil {
-        panic(err)
-    }
+		panic(err)
+	}
 
 	return buf.Bytes()
 }
@@ -127,10 +127,10 @@ type TagBuffer struct {
 }
 
 func boolToByte(x bool) byte {
-    if x {
-        return 1
-    }
-    return 0
+	if x {
+		return 1
+	}
+	return 0
 }
 
 // Define a constraint that includes all integer types

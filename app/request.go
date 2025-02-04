@@ -15,7 +15,7 @@ type RequestHeadersV2 struct {
 	requestApiVersion int16
 	correlationId     uint32
 	clientId          NullableString
-	tagBuffer         int8 // TODO: This assumes an empty TAG_BUFFER. This is true for now but needs to be adressed at some point. 
+	tagBuffer         int8 // TODO: This assumes an empty TAG_BUFFER. This is true for now but needs to be adressed at some point.
 }
 
 type RequestBody struct {
@@ -29,7 +29,7 @@ type ComapactArray struct {
 func parseRequest(rawRequest []byte) Request {
 	r := Request{}
 
-	// Parse Headers from request 
+	// Parse Headers from request
 	r.messageSize = binary.BigEndian.Uint32(rawRequest[:4])
 	r.headers.requestApiKey = binary.BigEndian.Uint16(rawRequest[4:6])
 	r.headers.requestApiVersion = int16(binary.BigEndian.Uint16(rawRequest[6:8]))
@@ -38,10 +38,10 @@ func parseRequest(rawRequest []byte) Request {
 
 	// Calculate the offset and jump to the TAG_BUFFER that comes after the clientId
 	offset := r.headers.clientId.length + 2
-	r.headers.tagBuffer = int8(rawRequest[12 + offset])
+	r.headers.tagBuffer = int8(rawRequest[12+offset])
 
-	// Parse Body from request 
-	r.body = rawRequest[12 + offset + 1:]
+	// Parse Body from request
+	r.body = rawRequest[12+offset+1:]
 
 	return r
 }

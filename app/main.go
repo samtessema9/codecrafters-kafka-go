@@ -23,38 +23,38 @@ func main() {
 			fmt.Println("Error accepting connection: ", err.Error())
 			os.Exit(1)
 		}
-	
+
 		go handleConn(conn)
 	}
 }
 
 func handleConn(conn net.Conn) {
 	defer conn.Close()
-	
+
 	for {
 		readBuf := make([]byte, 1024)
 		conn.Read(readBuf)
-	
+
 		// create write buffer
 		writeBuf := new(bytes.Buffer)
-	
+
 		// Parse the request
 		parsedRequest := parseRequest(readBuf)
 
 		var serializedResponse []byte
 		if parsedRequest.headers.requestApiKey == 18 {
-			// Construct ApiVersion v4 response 
+			// Construct ApiVersion v4 response
 			errorCode := checkVersion(parsedRequest.headers.requestApiVersion)
 			apv := ApiVersionsResponse{}
 			apv.errorCode = errorCode
-			apv.apiKeys = append(apv.apiKeys, 
+			apv.apiKeys = append(apv.apiKeys,
 				ApiKey{
-					apiKey: 18,
+					apiKey:     18,
 					minVersion: 0,
 					maxVersion: 4,
 				},
 				ApiKey{
-					apiKey: 75,
+					apiKey:     75,
 					minVersion: 0,
 					maxVersion: 0,
 				},
@@ -65,8 +65,8 @@ func handleConn(conn net.Conn) {
 			responseBody := DescribeTopicPartitionsResponse{
 				topics: []Topic{
 					{
-						errorCode: 0,
-						name: topicName,
+						errorCode:  0,
+						name:       topicName,
 						partitions: []Partition{},
 					},
 				},
@@ -86,7 +86,6 @@ func handleConn(conn net.Conn) {
 
 		messageSize := int32(len(writeBuf.Bytes()))
 
-
 		// Construct final output
 		output := new(bytes.Buffer)
 		binary.Write(output, binary.BigEndian, messageSize)
@@ -96,6 +95,3 @@ func handleConn(conn net.Conn) {
 		conn.Write(output.Bytes())
 	}
 }
-
-
- 

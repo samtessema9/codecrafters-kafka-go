@@ -10,7 +10,6 @@ import (
 )
 
 type ClusterMetadataLogline struct {
-
 }
 
 func parseClusterMetadataLogline(logLine []byte) (topics []Topic) {
@@ -19,7 +18,7 @@ func parseClusterMetadataLogline(logLine []byte) (topics []Topic) {
 		fmt.Errorf("Error parsing metadata logfile: %v", err)
 	}
 
-	buf := bytes.NewBuffer(data) 
+	buf := bytes.NewBuffer(data)
 
 	for {
 		/*
@@ -39,35 +38,35 @@ func parseClusterMetadataLogline(logLine []byte) (topics []Topic) {
 
 		_ = buf.Next(57)
 
-		var records int32 
+		var records int32
 		_ = binary.Read(buf, binary.BigEndian, &records)
 
 		var partitions []Partition
 		var topics map[UUID]Topic = map[UUID]Topic{}
 
 		for range records {
-			/* 
-			    - Length (signed varint)
-				- Attributes (1 bytes: Big Endian)
-				- Timestamp Delta (1 byte: signed int)
-				- Offset Delta (signed varint)
-				- Key Length (signed varint)
-				- Key (Doesn't exist)
-				- Value Length  (signed varint)
+			/*
+				    - Length (signed varint)
+					- Attributes (1 bytes: Big Endian)
+					- Timestamp Delta (1 byte: signed int)
+					- Offset Delta (signed varint)
+					- Key Length (signed varint)
+					- Key (Doesn't exist)
+					- Value Length  (signed varint)
 			*/
-			_, _ = binary.ReadVarint(buf)   // Length
-			_ = buf.Next(1)				    // Attributes
-			_ = buf.Next(1)					// Timestamp Delta
-			_, _ = binary.ReadVarint(buf)	// Offset Delta
-			_, _ = binary.ReadVarint(buf)	// Key Length 
+			_, _ = binary.ReadVarint(buf) // Length
+			_ = buf.Next(1)               // Attributes
+			_ = buf.Next(1)               // Timestamp Delta
+			_, _ = binary.ReadVarint(buf) // Offset Delta
+			_, _ = binary.ReadVarint(buf) // Key Length
 
-			valueLength, err := binary.ReadVarint(buf)   
+			valueLength, err := binary.ReadVarint(buf)
 			if err != nil {
 				fmt.Errorf("Error parsing value length from logs: %v", err)
 			}
 
 			valueBuf := bytes.NewBuffer(make([]byte, valueLength))
-			_ = binary.Read(buf, binary.BigEndian, valueBuf) 
+			_ = binary.Read(buf, binary.BigEndian, valueBuf)
 
 			_ = valueBuf.Next(1) // Discard Frame version (1 byte)
 
@@ -75,7 +74,7 @@ func parseClusterMetadataLogline(logLine []byte) (topics []Topic) {
 			_ = binary.Read(valueBuf, binary.BigEndian, &recordType)
 
 			switch recordType {
-			case 2: // Topic Record 
+			case 2: // Topic Record
 				var topic Topic
 
 				_ = valueBuf.Next(1) // Discard version (1 byte)
@@ -88,9 +87,9 @@ func parseClusterMetadataLogline(logLine []byte) (topics []Topic) {
 				_ = binary.Read(valueBuf, binary.BigEndian, name)
 				topic.name = CompactNullableString{
 					length: int64(lengthOfName),
-					value: string(name),
+					value:  string(name),
 				}
-				
+
 				uuid, err := uuid.FromBytes(valueBuf.Next(16))
 				if err != nil {
 					fmt.Errorf("Error parsing uuid: %v", err)
@@ -99,8 +98,8 @@ func parseClusterMetadataLogline(logLine []byte) (topics []Topic) {
 					uuid: uuid.String(),
 				}
 
-				_, _ = binary.ReadUvarint(valueBuf)  // Discard Tagged Fields Count
-				
+				_, _ = binary.ReadUvarint(valueBuf) // Discard Tagged Fields Count
+
 				topics[topic.topicID] = topic
 
 			case 3: // Partition Record
@@ -122,31 +121,31 @@ func parseClusterMetadataLogline(logLine []byte) (topics []Topic) {
 				if err != nil {
 					fmt.Errorf("Error Parsing Replica Array Length: %v", err)
 				}
-				partition.replicaNodes = make([]int32, lenOfReplicaArr - 1)
+				partition.replicaNodes = make([]int32, lenOfReplicaArr-1)
 				_ = binary.Read(valueBuf, binary.BigEndian, partition.replicaNodes)
 
 				lenOfISRReplicaArr, err := binary.ReadUvarint(valueBuf)
 				if err != nil {
 					fmt.Errorf("Error Parsing In Sync Replica Array Length: %v", err)
 				}
-				partition.isrNodes = make([]int32, lenOfISRReplicaArr - 1)
+				partition.isrNodes = make([]int32, lenOfISRReplicaArr-1)
 				_ = binary.Read(valueBuf, binary.BigEndian, partition.isrNodes)
 
-				_, _ = binary.ReadUvarint(valueBuf)  // Discard - Length of Removing Replicas array
-				_, _ = binary.ReadUvarint(valueBuf)  // Discard - Length of Adding Replicas array
+				_, _ = binary.ReadUvarint(valueBuf) // Discard - Length of Removing Replicas array
+				_, _ = binary.ReadUvarint(valueBuf) // Discard - Length of Adding Replicas array
 
 				_ = binary.Read(valueBuf, binary.BigEndian, &partition.leaderId)
 				_ = binary.Read(valueBuf, binary.BigEndian, &partition.leaderEpoch)
 
-				_ = valueBuf.Next(4)  // Discard Partition Epoch
+				_ = valueBuf.Next(4) // Discard Partition Epoch
 
-				lenOfDirArr, err := binary.ReadUvarint(valueBuf)  // Length of Directrories Array
+				lenOfDirArr, err := binary.ReadUvarint(valueBuf) // Length of Directrories Array
 				if err != nil {
 					fmt.Errorf("Error Parsing Length of Directrories Array: %v", err)
 				}
-				_ = valueBuf.Next((int(lenOfDirArr - 1)) * 16)  // Discard the contents of the Directories Array
+				_ = valueBuf.Next((int(lenOfDirArr - 1)) * 16) // Discard the contents of the Directories Array
 
-				_ = valueBuf.Next(1)  // Discard tagged fields - this assumes tagged fields is 0
+				_ = valueBuf.Next(1) // Discard tagged fields - this assumes tagged fields is 0
 
 				partitions = append(partitions, partition)
 
@@ -160,7 +159,7 @@ func parseClusterMetadataLogline(logLine []byte) (topics []Topic) {
 			_, _ = binary.ReadUvarint(buf)
 		}
 
-		return coorelateTopicsAndPartitions(topics, partitions) 
+		return coorelateTopicsAndPartitions(topics, partitions)
 	}
 }
 
