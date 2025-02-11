@@ -141,8 +141,7 @@ func (topic Topic) serialize() []byte {
 	buf.Write(topic.name.serialize())
 
 	// Topic ID
-	uuid := generateUUID()
-	binary.Write(buf, binary.BigEndian, uuid.serialize())
+	binary.Write(buf, binary.BigEndian, topic.topicID.serialize())
 
 	// isInternal
 	buf.WriteByte(boolToByte(topic.isInternal))

@@ -31,6 +31,8 @@ func main() {
 func handleConn(conn net.Conn) {
 	defer conn.Close()
 
+	parsedTopics := parseClusterMetadataLogline()
+
 	for {
 		readBuf := make([]byte, 1024)
 		conn.Read(readBuf)
@@ -61,8 +63,12 @@ func handleConn(conn net.Conn) {
 			)
 			serializedResponse = apv.serialize()
 		} else if parsedRequest.headers.requestApiKey == 75 {
+			// DescribeTopicPartitions body 
 			topicNames := parseTopicNames(parsedRequest.body)
-			parsedTopics := parseClusterMetadataLogline()
+			// parsedTopics := parseClusterMetadataLogline()
+
+			fmt.Printf("parseTopicNames: %v\n", topicNames)
+			// fmt.Printf("parsedTopics: %+v\n", parsedTopics)
 			
 			relevantTopics := func(topics map[string]Topic, names []string) (filteredTopics []Topic) {
 				for _, name := range names {
@@ -75,9 +81,29 @@ func handleConn(conn net.Conn) {
 				return filteredTopics
 			}(parsedTopics, topicNames)
 
-			responseBody := DescribeTopicPartitionsResponse{
-				topics: relevantTopics,
+			fmt.Printf("Relevant Topics: %+v\n", relevantTopics)
+
+			var responseBody DescribeTopicPartitionsResponse
+			if len(relevantTopics) == 0 {
+				responseBody = DescribeTopicPartitionsResponse{
+					topics: []Topic{
+						{
+							errorCode: 3,
+							name: CompactNullableString{
+								length: int64(len(topicNames[0])),
+								value: topicNames[0],
+							},
+							topicID: generateUUID(),
+							partitions: []Partition{},
+						},
+					},
+				}
+			} else {
+				responseBody = DescribeTopicPartitionsResponse{
+					topics: relevantTopics,
+				}
 			}
+			
 			serializedResponse = responseBody.serialize()
 		}
 
