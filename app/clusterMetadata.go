@@ -23,11 +23,8 @@ func parseClusterMetadataLogline() map[string]Topic {
 	buf := bytes.NewBuffer(data)
 	var partitions []Partition
 	var topics map[UUID]Topic = map[UUID]Topic{}
-	loopCount := 0
-	fmt.Printf("Len of Buffer at start: %v", buf.Len())
 
 	for {
-		fmt.Println("!!!Looping through outer loop!!!")
 		/*
 			BatchOffset: (8 bytes)
 			BatchLength: (4 bytes)
@@ -44,18 +41,9 @@ func parseClusterMetadataLogline() map[string]Topic {
 		*/
 
 		_ = buf.Next(57)
-		if buf.Len() == 0 {
-			break
-		}
-
-		fmt.Printf("\nLen of Buf after removing 57: %v\n", buf.Len())
 
 		var records int32
 		_ = binary.Read(buf, binary.BigEndian, &records)
-
-		fmt.Printf("Number of records: %v", records)
-
-		fmt.Printf("\nLen of Buf after reading records: %v\n", buf.Len())
 
 		for range records {
 			/*
@@ -67,58 +55,46 @@ func parseClusterMetadataLogline() map[string]Topic {
 					- Key (Doesn't exist)
 					- Value Length  (signed varint)
 			*/
-			_, _ = binary.ReadVarint(buf) // Length
-			_ = buf.Next(1)               // Attributes
-			_ = buf.Next(1)               // Timestamp Delta
-			_, _ = binary.ReadVarint(buf) // Offset Delta
+			_, _ = binary.ReadVarint(buf) 
+			_ = buf.Next(1)            
+			_ = buf.Next(1)              
+			_, _ = binary.ReadVarint(buf) 
 			keyLength, _ := binary.ReadVarint(buf) 
 			if keyLength > 0 {
 				_ = buf.Next(int(keyLength))
 			}
 
-			fmt.Printf("\nLen of Buf after removing record headers: %v\n", buf.Len())
-
 			valueLength, err := binary.ReadVarint(buf)
-			fmt.Printf("valueLength: %v\n", valueLength)
 			if err != nil {
 				fmt.Errorf("Error parsing value length from logs: %v", err)
 			}
 
-			// valueBuf := bytes.NewBuffer(make([]byte, valueLength))
 			newBuf := make([]byte, valueLength)
 			_ = binary.Read(buf, binary.BigEndian, newBuf)
 			valueBuf := bytes.NewBuffer(newBuf)
-			fmt.Printf("\nLen of Buf after reading record value into writeBuf: %v\n", buf.Len())
-			fmt.Printf("Size of valueBuf: %v\n", valueBuf.Len())
-			fmt.Printf("ValueBuf: % X\n", valueBuf.Bytes())
 
 			_ = valueBuf.Next(1) // Discard Frame version (1 byte)
 
 			var recordType int8
 			_ = binary.Read(valueBuf, binary.BigEndian, &recordType)
 
-			fmt.Printf("Record Type: %v\n", recordType)
 			switch recordType {
 			case 2: // Topic Record
 				var topic Topic
 
 				_ = valueBuf.Next(1) // Discard version (1 byte)
 
-				fmt.Printf("Len of valueBuf before reading name: %v\n", valueBuf.Len())
 				lengthOfName, err := binary.ReadUvarint(valueBuf)
-				fmt.Printf("Len of topic name: %v", lengthOfName)
 				if err != nil {
 					fmt.Errorf("Error reading Length of Topic name: %v", err)
 				}
+
 				name := make([]byte, lengthOfName - 1)
 				_ = binary.Read(valueBuf, binary.BigEndian, name)
 				topic.name = CompactNullableString{
 					length: int64(lengthOfName),
 					value:  string(name),
 				}
-				fmt.Printf("Topic name Bytes: %v\n", name)
-				fmt.Printf("Topic name String: %v\n", string(name))
-				fmt.Printf("Len of valueBuf after reading name: %v\n", valueBuf.Len())
 
 				uuid, err := uuid.FromBytes(valueBuf.Next(16))
 				if err != nil {
@@ -188,23 +164,12 @@ func parseClusterMetadataLogline() map[string]Topic {
 			// remove Headers Array Count (unsigned varint)
 			_, _ = binary.ReadUvarint(buf)
 		}
-		loopCount++
-		fmt.Printf("Len of Buffer: %v (Loop %v)\n", buf.Len(),loopCount)
+
 		if buf.Len() == 0 {
 			break
 		}	
 	}
-
-	for key, val := range topics {
-		fmt.Printf("Topic: {%v} - {%+v}\n", key.uuid, val)
-	}
-
-	for _, partition := range partitions {
-		fmt.Printf("Partition: %v\n", partition.topicID.uuid)
-	}
-
-	fmt.Printf("Len of Topics on parse method: %v\n", len(topics))
-	fmt.Printf("Len of Partitions on parse method: %v\n", len(partitions))
+	
 	return coorelateTopicsAndPartitions(topics, partitions)
 }
 
@@ -218,8 +183,5 @@ func coorelateTopicsAndPartitions(topicsMap map[UUID]Topic, partitions []Partiti
 			topics[topic.name.value] = topic
 		}
 	}
-
-	// fmt.Printf("Coorelated Topics & Partitions: %+v\n", topics)
-
 	return topics
 }
