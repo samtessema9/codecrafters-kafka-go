@@ -63,9 +63,9 @@ func handleConn(conn net.Conn) {
 			)
 			serializedResponse = apv.serialize()
 		} else if parsedRequest.headers.requestApiKey == 75 {
-			// Construct DescribeTopicPartitions response 
+			// Construct DescribeTopicPartitions response
 			topicNames := parseTopicNames(parsedRequest.body)
-			
+
 			relevantTopics := func(topics map[string]Topic, names []string) (filteredTopics []Topic) {
 				for _, name := range names {
 					topic, ok := topics[name]
@@ -85,9 +85,9 @@ func handleConn(conn net.Conn) {
 							errorCode: 3,
 							name: CompactNullableString{
 								length: int64(len(topicNames[0])),
-								value: topicNames[0],
+								value:  topicNames[0],
 							},
-							topicID: generateUUID(),
+							topicID:    generateUUID(),
 							partitions: []Partition{},
 						},
 					},
@@ -97,7 +97,7 @@ func handleConn(conn net.Conn) {
 					topics: relevantTopics,
 				}
 			}
-			
+
 			serializedResponse = responseBody.serialize()
 		}
 

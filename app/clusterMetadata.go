@@ -55,11 +55,11 @@ func parseClusterMetadataLogline() map[string]Topic {
 					- Key (Doesn't exist)
 					- Value Length  (signed varint)
 			*/
-			_, _ = binary.ReadVarint(buf) 
-			_ = buf.Next(1)            
-			_ = buf.Next(1)              
-			_, _ = binary.ReadVarint(buf) 
-			keyLength, _ := binary.ReadVarint(buf) 
+			_, _ = binary.ReadVarint(buf)
+			_ = buf.Next(1)
+			_ = buf.Next(1)
+			_, _ = binary.ReadVarint(buf)
+			keyLength, _ := binary.ReadVarint(buf)
 			if keyLength > 0 {
 				_ = buf.Next(int(keyLength))
 			}
@@ -89,7 +89,7 @@ func parseClusterMetadataLogline() map[string]Topic {
 					fmt.Errorf("Error reading Length of Topic name: %v", err)
 				}
 
-				name := make([]byte, lengthOfName - 1)
+				name := make([]byte, lengthOfName-1)
 				_ = binary.Read(valueBuf, binary.BigEndian, name)
 				topic.name = CompactNullableString{
 					length: int64(lengthOfName),
@@ -167,7 +167,7 @@ func parseClusterMetadataLogline() map[string]Topic {
 
 		if buf.Len() == 0 {
 			break
-		}	
+		}
 	}
 
 	return coorelateTopicsAndPartitions(topics, partitions)
@@ -183,6 +183,6 @@ func coorelateTopicsAndPartitions(topicsMap map[string]*Topic, partitions []Part
 			topics[topic.name.value] = *topic
 		}
 	}
-	
+
 	return topics
 }

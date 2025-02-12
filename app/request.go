@@ -55,7 +55,7 @@ func parseTopicNames(buf []byte) []string {
 	if err != nil {
 		fmt.Errorf("Error parsing len of topics (in: parseTopicName): ", err)
 	}
-		
+
 	names := []string{}
 	for range lenOfTopics - 1 {
 		lenOfName := int8(bufReader.Next(1)[0])
