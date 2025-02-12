@@ -51,24 +51,20 @@ func parseRequest(rawRequest []byte) Request {
 func parseTopicNames(buf []byte) []string {
 	bufReader := bytes.NewBuffer(buf)
 
-	// lenOfTopics := int8(bufReader.Next(1)[0])
 	lenOfTopics, err := binary.ReadUvarint(bufReader)
 	if err != nil {
-			fmt.Errorf("Error parsing len of topics (in: parseTopicName): ", err)
-		}
-	fmt.Printf("lenOfTopics: %v", lenOfTopics)
+		fmt.Errorf("Error parsing len of topics (in: parseTopicName): ", err)
+	}
 		
 	names := []string{}
 	for range lenOfTopics - 1 {
 		lenOfName := int8(bufReader.Next(1)[0])
-		// lenOfName, err := binary.ReadVarint(bufReader)
-		// if err != nil {
-			// 	fmt.Errorf("Error parsing len of name (in: parseTopicName): ", err)
-			// }
-		fmt.Printf("lenOfName: %v\n", lenOfName)
 
 		name := string(bufReader.Next(int(lenOfName) - 1))
 		names = append(names, name)
+
+		// TAG_BUFFER
+		_ = bufReader.Next(1)
 	}
 
 	return names
