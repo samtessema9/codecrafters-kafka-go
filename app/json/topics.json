@@ -1,0 +1,104 @@
+{
+    "pax": {
+        "errorCode": 0,
+        "name": {
+            "length": 4,
+            "value": "pax"
+        },
+        "topicID": {
+            "uuid": "00000000-0000-4000-8000-000000000060"
+        },
+        "isInternal": false,
+        "partitions": [
+            {
+                "errorCode": 0,
+                "partitionIndex": 0,
+                "leaderId": 1,
+                "leaderEpoch": 0,
+                "replicaNodes": [
+                    1
+                ],
+                "isrNodes": [
+                    1
+                ],
+                "eligibleLeaderReplicas": [],
+                "lastKnownElr": [],
+                "offlineReplicas": [],
+                "tagBuffer": 0,
+                "topicID": {
+                    "uuid": "00000000-0000-4000-8000-000000000060"
+                }
+            }
+        ],
+        "topicAuthorizedOperations": 0,
+        "tagBuffer": 0
+    },
+    "paz": {
+        "errorCode": 0,
+        "name": {
+            "length": 4,
+            "value": "paz"
+        },
+        "topicID": {
+            "uuid": "00000000-0000-4000-8000-000000000054"
+        },
+        "isInternal": false,
+        "partitions": [
+            {
+                "errorCode": 0,
+                "partitionIndex": 0,
+                "leaderId": 1,
+                "leaderEpoch": 0,
+                "replicaNodes": [
+                    1
+                ],
+                "isrNodes": [
+                    1
+                ],
+                "eligibleLeaderReplicas": [],
+                "lastKnownElr": [],
+                "offlineReplicas": [],
+                "tagBuffer": 0,
+                "topicID": {
+                    "uuid": "00000000-0000-4000-8000-000000000054"
+                }
+            }
+        ],
+        "topicAuthorizedOperations": 0,
+        "tagBuffer": 0
+    },
+    "qux": {
+        "errorCode": 0,
+        "name": {
+            "length": 4,
+            "value": "qux"
+        },
+        "topicID": {
+            "uuid": "00000000-0000-4000-8000-000000000049"
+        },
+        "isInternal": false,
+        "partitions": [
+            {
+                "errorCode": 0,
+                "partitionIndex": 1,
+                "leaderId": 1,
+                "leaderEpoch": 0,
+                "replicaNodes": [
+                    1
+                ],
+                "isrNodes": [
+                    1
+                ],
+                "eligibleLeaderReplicas": [],
+                "lastKnownElr": [],
+                "offlineReplicas": [],
+                "tagBuffer": 0,
+                "topicID": {
+                    "uuid": "00000000-0000-4000-8000-000000000049"
+                }
+            }
+        ],
+        "topicAuthorizedOperations": 0,
+        "tagBuffer": 0
+    }
+}

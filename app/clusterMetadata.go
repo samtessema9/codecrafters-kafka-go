@@ -22,7 +22,7 @@ func parseClusterMetadataLogline() map[string]Topic {
 
 	buf := bytes.NewBuffer(data)
 	var partitions []Partition
-	var topics map[UUID]Topic = map[UUID]Topic{}
+	var topics map[string]*Topic = map[string]*Topic{}
 
 	for {
 		/*
@@ -106,7 +106,7 @@ func parseClusterMetadataLogline() map[string]Topic {
 
 				_, _ = binary.ReadUvarint(valueBuf) // Discard Tagged Fields Count
 
-				topics[topic.topicID] = topic
+				topics[topic.topicID.uuid] = &topic
 
 			case 3: // Partition Record
 				var partition Partition
@@ -169,19 +169,20 @@ func parseClusterMetadataLogline() map[string]Topic {
 			break
 		}	
 	}
-	
+
 	return coorelateTopicsAndPartitions(topics, partitions)
 }
 
-func coorelateTopicsAndPartitions(topicsMap map[UUID]Topic, partitions []Partition) map[string]Topic {
+func coorelateTopicsAndPartitions(topicsMap map[string]*Topic, partitions []Partition) map[string]Topic {
 	topics := map[string]Topic{}
 
 	for _, partition := range partitions {
-		topic, ok := topicsMap[partition.topicID]
+		topic, ok := topicsMap[partition.topicID.uuid]
 		if ok {
 			topic.partitions = append(topic.partitions, partition)
-			topics[topic.name.value] = topic
+			topics[topic.name.value] = *topic
 		}
 	}
+	
 	return topics
 }
