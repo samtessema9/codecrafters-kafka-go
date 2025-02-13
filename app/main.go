@@ -60,6 +60,11 @@ func handleConn(conn net.Conn) {
 					minVersion: 0,
 					maxVersion: 0,
 				},
+				ApiKey{
+					apiKey:     1,
+					minVersion: 0,
+					maxVersion: 16,
+				},
 			)
 			serializedResponse = apv.serialize()
 		} else if parsedRequest.headers.requestApiKey == 75 {
