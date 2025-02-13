@@ -44,7 +44,10 @@ func handleConn(conn net.Conn) {
 		parsedRequest := parseRequest(readBuf)
 
 		var serializedResponse []byte
-		if parsedRequest.headers.requestApiKey == 18 {
+
+		requestApiKey := parsedRequest.headers.requestApiKey	
+		switch requestApiKey {
+		case 18:
 			// Construct ApiVersion v4 response
 			errorCode := checkVersion(parsedRequest.headers.requestApiVersion)
 			apv := ApiVersionsResponse{}
@@ -67,7 +70,7 @@ func handleConn(conn net.Conn) {
 				},
 			)
 			serializedResponse = apv.serialize()
-		} else if parsedRequest.headers.requestApiKey == 75 {
+		case 75:
 			// Construct DescribeTopicPartitions response
 			topicNames := parseTopicNames(parsedRequest.body)
 
@@ -104,7 +107,11 @@ func handleConn(conn net.Conn) {
 			}
 
 			serializedResponse = responseBody.serialize()
-		}
+			
+		case 1: 
+			fetchResponse := FetchResponseV16{}
+			serializedResponse = fetchResponse.serialize()
+		}	
 
 		// write headers
 		binary.Write(writeBuf, binary.BigEndian, parsedRequest.headers.correlationId)
