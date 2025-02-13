@@ -43,7 +43,13 @@ func (fr FetchResponseV16) serialize() []byte {
 	binary.Write(buf, binary.BigEndian, fr.sessionID)
 
 	// Responses 
-	binary.Write(buf, binary.BigEndian, int8(len(fr.responses) + 1))
+	lenOfResponses := int8(len(fr.responses) + 1)
+	binary.Write(buf, binary.BigEndian, lenOfResponses)
+
+	if lenOfResponses == 1 {
+		// TAG_BUFFER 
+		binary.Write(buf, binary.BigEndian, fr.TagBuffer)
+	}
 	
 	for _, response := range fr.responses {
 		binary.Write(buf, binary.BigEndian, response.serialize())
